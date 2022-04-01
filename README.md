@@ -184,7 +184,7 @@ SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Complex: 0
 └─# smbmap -H 10.129.127.11 -u SABatchJobs -p 'SABatchJobs' -R
 ```
 
-<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte4jpg" width=80% />
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte4.jpg" width=80% />
 
 - Accedemos a la carpeta compartida y vemos el contenido del archvivo AZURE.XML
 
